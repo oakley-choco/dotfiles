@@ -1,23 +1,34 @@
 #!/usr/bin/env zsh
+# 不能用 set -u：oh-my-zsh 內部會引用未設定的變數
+set -eo pipefail
 
 # Initial settings
+# oh-my-zsh 的 plugin 補完在非互動 shell 下可能回傳非 0，
+# 會被 set -e 當成失敗，所以只在 source 期間關掉 errexit。
+set +e
 source $HOME/.dotfiles/configs/.zshrc
+set -e
 
 
 info "Start to link .zshrc"
 backup $HOME/.zshrc
 symlink $HOME/.dotfiles/configs/.zshrc $HOME/.zshrc
 
-info "Start to link vscode settings & keybindings"
-CODE_PATH=~/Library/Application\ Support/VSCodium/User
-for name in settings.json keybindings.json; do
-  target="$CODE_PATH/$name"
+
+info "Start to link .gitconfig"
+backup $HOME/.gitconfig
+symlink $HOME/.dotfiles/configs/.gitconfig $HOME/.gitconfig
+
+
+info "Start to link zed settings & keymap"
+for name in settings.json keymap.json; do
+  target="$HOME/.config/zed/$name"
   backup "$target"
-  symlink "$HOME/.dotfiles/configs/.vscode/$name" "$target"
+  symlink "$HOME/.dotfiles/configs/.zed/$name" "$target"
 done
 
-success "Configure successful."
-success "🚀 Carry on with git setup. 🚀"
 
-exec zsh
+success "Configure successful."
+success "🚀 Open a new shell to pick up the changes. 🚀"
+
 exit 0

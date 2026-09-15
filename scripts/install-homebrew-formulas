@@ -1,43 +1,19 @@
 #!/usr/bin/env zsh
-set -euo pipefail
+# 不能用 set -u：oh-my-zsh 內部會引用未設定的變數
+set -eo pipefail
 
 # Initial settings
+# oh-my-zsh 的 plugin 補完在非互動 shell 下可能回傳非 0，
+# 會被 set -e 當成失敗，所以只在 source 期間關掉 errexit。
+set +e
 source $HOME/.dotfiles/configs/.zshrc
+set -e
 
-# Install some dependencies
-brew install gcc openssl readline xz zlib tcl-tk coreutils
-brew install git wget curl tree jq yq tldr ipcalc redis sqlite3 awscli
-
-# @see https://github.com/ggreer/the_silver_searcher ag
-brew install the_silver_searcher
-
-brew install ffmpeg
-brew install mole
-
-brew install --cask 1password
-brew install --cask adguard
-brew install --cask aws-vpn-client
-brew install --cask claude
-brew install --cask claude-code
-brew install --cask kakuku
-brew install --cask orbstack
-brew install --cask postman
-brew install --cask raycast
-brew install --cask shottr
-brew install --cask slack
-brew install --cask tablepro
-brew install --cask ungoogled-chromium
-brew install --cask vscodium
-brew install --cask zed
-
-# install fonts (homebrew/cask-fonts tap is no longer needed)
-# terminal fonts
-brew install --cask font-cascadia-code
-brew install --cask font-cascadia-code-pl
-brew install --cask font-cascadia-mono
-brew install --cask font-cascadia-mono-pl
-# IDE fonts
-brew install --cask font-fira-code
+# 套件清單改由 Brewfile 維護，重新產生快照：
+#   brew bundle dump --force --no-vscode --file="$DOTFILES_PATH/Brewfile"
+#
+# --no-upgrade: 只安裝缺少的項目，不順手升級既有套件
+brew bundle install --no-upgrade --file="$DOTFILES_PATH/Brewfile"
 
 success "Install homebrew packages successful."
 exit 0

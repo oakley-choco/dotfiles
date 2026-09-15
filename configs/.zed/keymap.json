@@ -1,0 +1,22 @@
+[
+  {
+    "context": "Pane",
+    "bindings": {
+      "cmd-]": "pane::GoForward",
+      "cmd-[": "pane::GoBack"
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "cmd-.": "editor::ShowCompletions",
+      "cmd-i": "editor::GoToImplementation"
+    }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "alt-cmd-s": "workspace::ToggleLeftDock"
+    }
+  }
+]

@@ -1,4 +1,4 @@
-.PHONY: install bootstrap-basic bootstrap-devtools install-homebrew-formulas configure reconfigure cleanup debug-zsh debug-bash
+.PHONY: export-dbx install bootstrap-basic bootstrap-devtools install-homebrew-formulas configure reconfigure cleanup debug-zsh debug-bash
 
 install: bootstrap-basic \
 	bootstrap-devtools \
@@ -26,9 +26,13 @@ reconfigure:
 	./scripts/configure
 
 
+export-dbx:
+	./scripts/export-dbx-connections
+
+
 cleanup:
-	rm -rf ../.sdkman ../.oh-my-zsh ../.zshrc.pre-oh-my-zsh ../.zshrc ../.bash_profile .bin .homebrew .sdkman
-	find $$HOME -maxdepth 1 \( -iname '.bash_profile.backup*' -o -iname '.zshrc.backup*' \) | xargs rm
+	rm -rf $$HOME/.oh-my-zsh $$HOME/.zshrc.pre-oh-my-zsh $$HOME/.zshrc $$HOME/.bash_profile $$HOME/.dotfiles/.bin
+	find $$HOME -maxdepth 1 \( -iname '.bash_profile.backup*' -o -iname '.zshrc.backup*' \) -delete
 
 
 debug-zsh: SHELL:=/bin/zsh

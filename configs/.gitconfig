@@ -1,0 +1,7 @@
+[user]
+	name = Oakley
+	email = oakley.liu@choco.media
+[core]
+	editor = zed --wait
+[url "git@bitbucket.org:"]
+	insteadOf = https://bitbucket.org/

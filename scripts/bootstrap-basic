@@ -15,14 +15,23 @@ symlink $HOME/.dotfiles/configs/.bash_profile $HOME/.bash_profile
 symlink $HOME/.dotfiles/configs/.zshrc $HOME/.zshrc
 
 
-# Install homebrew without sudo.
+# Install Homebrew at the official prefix (/opt/homebrew).
+# 之前用自訂 prefix ($DOTFILES_PATH/.homebrew)，那是 Homebrew 官方不支援的配置，
+# 拿不到 bottle，所有套件都得從原始碼編譯。改回官方位置換取 bottle，代價是需要一次 sudo。
 # @see https://docs.brew.sh/Installation
 if [[ -z $(command -v brew) ]];then
-    info "Start to install Homebrew"
+    info "Start to install Homebrew (需要 sudo 密碼)"
 
-    git clone --depth=1 https://github.com/Homebrew/brew $DOTFILES_PATH/.homebrew && \
-    chmod +x $DOTFILES_PATH/.homebrew/bin/brew && \
+    # NONINTERACTIVE=1 會讓安裝程式改用 `sudo -n`（不提示密碼），
+    # 所以必須先自行取得 sudo 憑證，否則安裝程式會直接中止。
+    sudo -v
+
+    NONINTERACTIVE=1 /bin/bash -c \
+        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && \
     success "Install Homebrew successful."
+
+    # 安裝後 $HOMEBREW_PREFIX 才存在，重新載入讓 PATH 生效
+    source $HOME/.dotfiles/configs/.exports
 fi
 
 

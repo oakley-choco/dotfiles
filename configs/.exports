@@ -9,27 +9,25 @@ export ZSH_CUSTOM=$ZSH/custom
 export DOTFILES_PATH=$HOME/.dotfiles
 
 
-# The shell environment variable for Pyenv
-export PYENV_ROOT="$HOME/.dotfiles/.pyenv"
+# The Homebrew prefix
+# 新機器一律安裝在官方位置 /opt/homebrew（bootstrap-basic 會用官方安裝程式）。
+# 舊機器若還留著自訂 prefix ($DOTFILES_PATH/.homebrew) 就繼續沿用，避免既有套件失效。
+if [[ -x "$DOTFILES_PATH/.homebrew/bin/brew" ]]; then
+    export HOMEBREW_PREFIX="$DOTFILES_PATH/.homebrew"
+else
+    export HOMEBREW_PREFIX="/opt/homebrew"
+fi
+export HOMEBREW_CELLAR="$HOMEBREW_PREFIX/Cellar"
+export HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX"
 
 
 # Add some executable binaries path to $PATH
-export PATH=$HOME/.dotfiles/.homebrew/bin:$HOME/.dotfiles/.bin:$HOME/bin:/usr/local/bin:$PYENV_ROOT/bin:$PATH
+export PATH=$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$DOTFILES_PATH/.bin:$HOME/bin:/usr/local/bin:$PATH
 
-
-# The Homebrew path
-# default is: /opt/homebrew
-export HOMEBREW_PREFIX=$DOTFILES_PATH/.homebrew
-
-# default: /opt/homebrew/Cellar
-export HOMEBREW_CELLAR=$HOMEBREW_PREFIX/Cellar
 
 # You may need to manually set your language environment
 export LC_ALL="en_US.UTF-8"
 export LANG="en_US.UTF-8"
-
-# The sdkman(Java version management) environment variable
-export SDKMAN_DIR="$HOME/.dotfiles/.sdkman"
 
 # Disable Homebrew analytics
 export HOMEBREW_NO_ANALYTICS=1

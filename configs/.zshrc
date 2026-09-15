@@ -1,3 +1,8 @@
+# OPENSPEC:START
+# OpenSpec shell completions configuration
+fpath=("${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions" $fpath)
+# OPENSPEC:END
+
 # Source the environment variables
 # @see https://stackoverflow.com/a/26020688
 # @see http://zsh.sourceforge.net/Doc/Release/Shell-Builtin-Commands.html
@@ -6,7 +11,7 @@ source $HOME/.dotfiles/configs/.functions
 
 
 # Theme: spaceship for most terminals, robbyrussell for Warp
-if [[ $TERM_PROGRAM != "WarpTerminal" ]];then
+if [[ ${TERM_PROGRAM:-} != "WarpTerminal" ]];then
    ZSH_THEME="spaceship"
 else
    ZSH_THEME="robbyrussell"
@@ -64,21 +69,25 @@ fi
 
 
 # The multiple runtime version management
-[[ -e $HOME/.dotfiles/.homebrew/bin/mise ]] && eval "$($HOME/.dotfiles/.homebrew/bin/mise activate zsh)"
-
-# The java version management
-[[ -e $HOME/.dotfiles/.sdkman/bin/sdkman-init.sh ]] && source $HOME/.dotfiles/.sdkman/bin/sdkman-init.sh
-
-
-# Pyenv
-# @see https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv
-if [[ $(command -v pyenv) ]];then
-   eval "$(pyenv init -)"
-fi
+[[ -x "$HOMEBREW_PREFIX/bin/mise" ]] && eval "$("$HOMEBREW_PREFIX/bin/mise" activate zsh)"
 
 
 # Additional settings (work-related, gitignored)
 [[ -e $HOME/.dotfiles/configs/.workrc ]] && source $HOME/.dotfiles/configs/.workrc
 
+# pnpm
+export PNPM_HOME="$HOME/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+
+# Mole shell completion
+if output="$(mole completion zsh 2>/dev/null)"; then eval "$output"; fi
+
+
 # Kaku Shell Integration
-[[ -f "/Users/oakley/.config/kaku/zsh/kaku.zsh" ]] && source "/Users/oakley/.config/kaku/zsh/kaku.zsh"
+[[ ":$PATH:" != *":$HOME/.config/kaku/zsh/bin:"* ]] && export PATH="$HOME/.config/kaku/zsh/bin:$PATH"
+[[ -f "$HOME/.config/kaku/zsh/kaku.zsh" ]] && source "$HOME/.config/kaku/zsh/kaku.zsh"

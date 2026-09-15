@@ -1,0 +1,65 @@
+#!/usr/bin/env zsh
+# 不能用 set -u：oh-my-zsh 內部會引用未設定的變數
+set -eo pipefail
+
+# 把 DBX 的連線設定匯出成可版控的 JSON。
+#
+# DBX 沒有文字設定檔，全部存在 SQLite DB 裡，而且 connection_secrets 的密碼是明文，
+# 所以這裡刻意只匯出「重建連線需要的非機密欄位」，密碼留空由你重灌後手動補。
+# 完整還原（含密碼、查詢歷史）請改用手動複製：
+#   ~/Library/Application Support/com.dbx.app/   （關掉 DBX 後整個目錄複製，含 -wal/-shm）
+
+# 只載入需要的部分。完整的 .zshrc 會帶進 oh-my-zsh 與終端機整合，
+# 它們在非互動 shell 下會輸出 escape sequence，污染這裡的 stdout。
+source $HOME/.dotfiles/configs/.exports
+source $HOME/.dotfiles/configs/.functions
+
+DB="$HOME/Library/Application Support/com.dbx.app/dbx.db"
+OUT="$DOTFILES_PATH/configs/dbx-connections.json"
+
+[[ -f "$DB" ]] || fail "找不到 DBX 資料庫: $DB"
+
+info "Start to export DBX connections"
+
+sqlite3 -json "$DB" "SELECT config_json FROM connections;" | python3 -c '
+import json, sys
+
+# 白名單：只放行明確安全的欄位。新版 DBX 若增加欄位，預設是「不匯出」而不是「不小心匯出」。
+ALLOW = [
+    "name", "db_type", "driver_label", "driver_profile",
+    "host", "port", "database", "username",
+    "ssl", "sysdba", "color",
+    "connect_timeout_secs", "idle_timeout_secs",
+    "keepalive_interval_secs", "query_timeout_secs",
+    "jdbc_driver_class",
+]
+# 明確阻擋（僅供閱讀；不在 ALLOW 裡本來就不會出現）
+DENY = {"password", "connection_string", "external_config", "url_params",
+        "database_info", "jdbc_driver_paths", "id"}
+
+rows = [json.loads(r["config_json"]) for r in json.load(sys.stdin)]
+out = []
+for r in rows:
+    c = {k: r[k] for k in ALLOW if k in r and r[k] not in (None, "", [], {})}
+    c["save_password"] = False   # 匯入後由你手動輸入密碼
+    out.append(c)
+out.sort(key=lambda c: (c.get("db_type", ""), c.get("name", "")))
+
+doc = {
+    "_comment": "DBX 連線設定（不含密碼）。重灌後在 DBX 裡依此重建連線，密碼手動輸入。",
+    "_source": "~/Library/Application Support/com.dbx.app/dbx.db",
+    "_regenerate": "make export-dbx",
+    "connections": out,
+}
+text = json.dumps(doc, indent=2, ensure_ascii=False)
+
+# 保險：輸出若混進任何疑似密鑰的欄位就中止，不要寫檔
+for bad in DENY:
+    if f"\"{bad}\"" in text:
+        sys.exit(f"REFUSED: 輸出含有被禁止的欄位 {bad}")
+print(text)
+' > "$OUT"
+
+success "Exported $(python3 -c 'import json,sys;print(len(json.load(open(sys.argv[1]))["connections"]))' "$OUT") connections to $OUT"
+success "密碼未匯出，重灌後請在 DBX 內手動輸入。"
+exit 0

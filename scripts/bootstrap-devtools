@@ -1,15 +1,22 @@
 #!/usr/bin/env zsh
-set -euo pipefail
+# 不能用 set -u：oh-my-zsh 內部會引用未設定的變數
+set -eo pipefail
 
 # Initial settings
+# oh-my-zsh 的 plugin 補完在非互動 shell 下可能回傳非 0，
+# 會被 set -e 當成失敗，所以只在 source 期間關掉 errexit。
+set +e
 source $HOME/.dotfiles/configs/.zshrc
+set -e
 
 
 # Install oh-my-zsh.
 # @see https://ohmyz.sh/#install
+# KEEP_ZSHRC=yes 是關鍵：預設安裝程式會直接覆蓋掉 ~/.zshrc 的符號連結
 [[ ! -d $HOME/.oh-my-zsh ]] && \
     info "Start to install oh-my-zsh" && \
-    curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash && \
+    KEEP_ZSHRC=yes RUNZSH=no CHSH=no \
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" && \
     success "Install oh-my-zsh successful."
 
 
@@ -56,34 +63,12 @@ info "Start to install zsh-plugins."
     success "Install mise successful."
 
 
-# Install sdkman(java version management).
-# @see https://sdkman.io/install
-[[ -z $(command -v sdk) ]] && \
-    info "Start to install sdkman." && \
-    curl -s "https://get.sdkman.io" | zsh && \
-    success "Install sdkman successful."
-
-
-# Install pyenv for you may need python2.7.x to install some legacy programming language versions
-if [[ -z $(command -v pyenv) ]];then
-    if [[ "$(uname -m)" == "arm64" ]];then
-        info "Start to install pyenv(arm64)" && \
-            arch -arm64 brew install pyenv && \
-            success "Install pyenv successful."
-    else
-        info "Start to install pyenv(x86_64)" && \
-            brew install pyenv && \
-            success "Install pyenv successful."
-    fi
-fi
-
-
 # Reload .zshrc
+# oh-my-zsh 的 plugin 補完在非互動 shell 下可能回傳非 0，
+# 會被 set -e 當成失敗，所以只在 source 期間關掉 errexit。
+set +e
 source $HOME/.dotfiles/configs/.zshrc
-
-
-# Relink .zshrc
-ln -sf $HOME/.dotfiles/configs/.zshrc $HOME/.zshrc
+set -e
 
 
 success "Bootstrap plugins successful."

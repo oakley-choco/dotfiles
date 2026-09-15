@@ -11,22 +11,30 @@ fail () {
   exit 1
 }
 
+# 備份既有檔案/符號連結/目錄後移走，讓 symlink 可以乾淨建立
 backup() {
   local target=$1
-  if [[ -e "$target" ]]; then
-    if [[ -f "$target" || -L "$target" ]]; then
-      local extension="backup.$(date +%Y%m%d%H%M%S)"
-      mv "$target" "$target.$extension"
-      info "Moved your old $target config file to $target.$extension"
-    fi
+  # 已經是我們自己建的 symlink 就不用備份，否則每次 reconfigure 都會多一份垃圾
+  if [[ -L "$target" && "$(readlink "$target")" == "${DOTFILES_PATH:-$HOME/.dotfiles}"/* ]]; then
+    return 0
+  fi
+  # -e 對「指向不存在目標的壞掉 symlink」會是 false，所以要一併檢查 -L
+  if [[ -e "$target" || -L "$target" ]]; then
+    local extension="backup.$(date +%Y%m%d%H%M%S)"
+    mv "$target" "$target.$extension"
+    info "Moved your old $target config file to $target.$extension"
   fi
 }
 
 symlink() {
   local file=$1
   local target=$2
-  if [[ ! -f "$target" && ! -L "$target" ]]; then
-    info "Symlinking your new $target"
-    ln -sf "$file" "$target"
+  # 已經指向正確來源就不用重做
+  if [[ -L "$target" && "$(readlink "$target")" == "$file" ]]; then
+    return 0
   fi
+  info "Symlinking your new $target"
+  mkdir -p "$(dirname "$target")"
+  # -n: target 是指向目錄的 symlink 時，取代它本身而不是寫進目錄裡
+  ln -sfn "$file" "$target"
 }
