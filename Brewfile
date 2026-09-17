@@ -1,7 +1,6 @@
 tap "abue-ammar/tinycast", trusted: true
 tap "atlassian/acli", trusted: true
 tap "oven-sh/bun", trusted: true
-tap "tw93/tap", trusted: true
 # Cryptography and SSL/TLS Toolkit
 brew "openssl@3"
 # Library for command-line editing
@@ -100,13 +99,13 @@ cask "font-cascadia-code"
 cask "font-cascadia-mono"
 cask "font-fira-code"
 # A fast, out-of-the-box terminal built for AI coding
-cask "tw93/tap/kakuku"
+cask "kaku"
 # Replacement for Docker Desktop
 cask "orbstack"
 # Collaboration platform for API development
 cask "postman"
 # Web browser
-cask "safari-technology-preview"
+# cask "safari-technology-preview"
 # Team communication and collaboration software
 cask "slack"
 # Native screenshots, recording, annotation, and editing from the menu bar
