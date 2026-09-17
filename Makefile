@@ -37,7 +37,7 @@ cleanup:
 
 debug-zsh: SHELL:=/bin/zsh
 debug-zsh:
-	source $$HOME/.dotfiles/configs/.zshrc && printenv
+	source $$HOME/.dotfiles/configs/.zshrc; true && printenv
 
 
 debug-bash: SHELL:=/bin/bash

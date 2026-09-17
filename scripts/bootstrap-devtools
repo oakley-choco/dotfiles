@@ -1,75 +1,71 @@
 #!/usr/bin/env zsh
-# 不能用 set -u：oh-my-zsh 內部會引用未設定的變數
 set -eo pipefail
 
-# Initial settings
-# oh-my-zsh 的 plugin 補完在非互動 shell 下可能回傳非 0，
-# 會被 set -e 當成失敗，所以只在 source 期間關掉 errexit。
+# 關閉 Spaceship 主題的非同步機制，防止 preexec hook 的 zpty 回傳 1 觸發 set -e
+export SPACESHIP_PROMPT_ASYNC=false
+export SPACESHIP_ASYNC=false
+
+# 載入基礎函式庫
 set +e
-source $HOME/.dotfiles/configs/.zshrc
+source $HOME/.dotfiles/configs/.zshrc 2>/dev/null
 set -e
 
+# 備用 log 函式
+type info &>/dev/null || info() { echo "[INFO] $*"; }
+type success &>/dev/null || success() { echo "[SUCCESS] $*"; }
 
-# Install oh-my-zsh.
-# @see https://ohmyz.sh/#install
-# KEEP_ZSHRC=yes 是關鍵：預設安裝程式會直接覆蓋掉 ~/.zshrc 的符號連結
-[[ ! -d $HOME/.oh-my-zsh ]] && \
-    info "Start to install oh-my-zsh" && \
+# 1. Install oh-my-zsh
+if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+    info "Start to install oh-my-zsh"
     KEEP_ZSHRC=yes RUNZSH=no CHSH=no \
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" && \
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     success "Install oh-my-zsh successful."
+fi
 
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
 info "Start to install zsh-plugins."
-# zsh-completions
-# @see https://github.com/zsh-users/zsh-completions#oh-my-zsh
-[[ ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-completions ]] && \
-    info "Start to install plugins/zsh-completions" && \
-    git clone https://github.com/zsh-users/zsh-completions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-completions && \
+
+# 2. zsh-completions
+if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-completions" ]]; then
+    info "Start to install plugins/zsh-completions"
+    git clone https://github.com/zsh-users/zsh-completions "$ZSH_CUSTOM/plugins/zsh-completions"
     success "Install plugins/zsh-completions successful."
+fi
 
-
-# zsh-autosuggestions
-# @see https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md#oh-my-zsh
-[[ ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions ]] && \
-    info "Start to install plugins/zsh-autosuggestions" && \
-    git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
+# 3. zsh-autosuggestions
+if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]]; then
+    info "Start to install plugins/zsh-autosuggestions"
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
     success "Install plugins/zsh-autosuggestions successful."
+fi
 
-
-# zsh-syntax-highlighting
-# @see https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md#oh-my-zsh
-[[ ! -d ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting ]] && \
-    info "Start to install plugins/zsh-syntax-highlighting" && \
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
+# 4. zsh-syntax-highlighting
+if [[ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]]; then
+    info "Start to install plugins/zsh-syntax-highlighting"
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
     success "Install plugins/zsh-syntax-highlighting successful."
+fi
 
-
-
-# spaceship theme
-# @see https://spaceship-prompt.sh/getting-started/#installing
-[[ ! -d "$ZSH_CUSTOM/themes/spaceship-prompt" ]] && \
-    info "Start to install themes/spaceship-prompt" && \
-    git clone https://github.com/spaceship-prompt/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt" --depth=1 && \
-    ln -sf "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme" && \
+# 5. spaceship theme
+if [[ ! -d "$ZSH_CUSTOM/themes/spaceship-prompt" ]]; then
+    info "Start to install themes/spaceship-prompt"
+    git clone https://github.com/spaceship-prompt/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt" --depth=1
+    ln -sf "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
     success "Install themes/spaceship-prompt successful."
+fi
 
-
-# Install the version management that manage multiple runtime versions with a single CLI tool
-# @see https://mise.jdx.dev/getting-started.html#homebrew
-[[ -z $(command -v mise) ]] && \
-    info "Start to install mise." && \
-    brew install mise && \
+# 6. Install mise
+if ! command -v mise &>/dev/null; then
+    info "Start to install mise."
+    brew install mise
     success "Install mise successful."
-
+fi
 
 # Reload .zshrc
-# oh-my-zsh 的 plugin 補完在非互動 shell 下可能回傳非 0，
-# 會被 set -e 當成失敗，所以只在 source 期間關掉 errexit。
 set +e
-source $HOME/.dotfiles/configs/.zshrc
+source $HOME/.dotfiles/configs/.zshrc 2>/dev/null
 set -e
-
 
 success "Bootstrap plugins successful."
 exit 0

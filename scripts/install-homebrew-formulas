@@ -1,19 +1,33 @@
 #!/usr/bin/env zsh
-# 不能用 set -u：oh-my-zsh 內部會引用未設定的變數
 set -eo pipefail
 
-# Initial settings
-# oh-my-zsh 的 plugin 補完在非互動 shell 下可能回傳非 0，
-# 會被 set -e 當成失敗，所以只在 source 期間關掉 errexit。
+# 關閉 Spaceship 主題非同步機制，防止 prompt hook 傳回 exit code 1
+export SPACESHIP_PROMPT_ASYNC=false
+export SPACESHIP_ASYNC=false
+
+# 載入基礎設定與函式 (避開 oh-my-zsh 在 set -e 下的潛在問題)
 set +e
-source $HOME/.dotfiles/configs/.zshrc
+source $HOME/.dotfiles/configs/.zshrc 2>/dev/null
 set -e
 
-# 套件清單改由 Brewfile 維護，重新產生快照：
-#   brew bundle dump --force --no-vscode --file="$DOTFILES_PATH/Brewfile"
-#
-# --no-upgrade: 只安裝缺少的項目，不順手升級既有套件
-brew bundle install --no-upgrade --file="$DOTFILES_PATH/Brewfile"
+# 備用 log 函式
+type info &>/dev/null || info() { echo "[INFO] $*"; }
+type success &>/dev/null || success() { echo "[SUCCESS] $*"; }
+type warning &>/dev/null || warning() { echo "[WARNING] $*"; }
 
-success "Install homebrew packages successful."
+# 確保 DOTFILES_PATH 有預設值
+DOTFILES_PATH="${DOTFILES_PATH:-$HOME/.dotfiles}"
+
+info "Start to install Homebrew packages from Brewfile..."
+
+# 執行 brew bundle install
+# 註：若希望即使有單一套件失敗也繼續執行後續動作，可以用 set +e ... set -e 包裹
+if brew bundle install --no-upgrade --file="$DOTFILES_PATH/Brewfile"; then
+    success "Install homebrew packages successful."
+else
+    warning "Some Homebrew packages failed to install. Please check the logs above."
+    # 若希望此腳本依然通過 Make，可以在這裡 exit 0；若要嚴格檢查請保留 exit 1
+    exit 1
+fi
+
 exit 0

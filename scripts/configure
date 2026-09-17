@@ -2,6 +2,10 @@
 # 不能用 set -u：oh-my-zsh 內部會引用未設定的變數
 set -eo pipefail
 
+# 關鍵防護：停用 Spaceship 主題非同步機制，避免 preexec hook 的 zpty 回傳 1 觸發 set -e
+export SPACESHIP_PROMPT_ASYNC=false
+export SPACESHIP_ASYNC=false
+
 # Initial settings
 # oh-my-zsh 的 plugin 補完在非互動 shell 下可能回傳非 0，
 # 會被 set -e 當成失敗，所以只在 source 期間關掉 errexit。
@@ -9,6 +13,9 @@ set +e
 source $HOME/.dotfiles/configs/.zshrc
 set -e
 
+# 備用 log 函式
+type info &>/dev/null || info() { echo "[INFO] $*"; }
+type success &>/dev/null || success() { echo "[SUCCESS] $*"; }
 
 info "Start to link .zshrc"
 backup $HOME/.zshrc
