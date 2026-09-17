@@ -37,7 +37,7 @@
     },
   },
   "icon_theme": {
-    "mode": "dark",
+    "mode": "system",
     "light": "Zed (Default)",
     "dark": "Material Icon Theme",
   },
@@ -72,7 +72,7 @@
   "ui_font_size": 18.0,
   "buffer_font_size": 18.0,
   "theme": {
-    "mode": "dark",
+    "mode": "system",
     "light": "Gruvbox Light",
     "dark": "Catppuccin Macchiato",
   },
